@@ -1,6 +1,7 @@
 package com.example.contact_list_app
 
 import android.os.Bundle
+import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -10,6 +11,7 @@ import com.example.contact_list_app.adapter.ContactAdapter
 import com.example.contact_list_app.api.RetrofitClient
 import com.example.contact_list_app.model.ContactModel
 import com.example.contact_list_app.model.UserResponse
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import retrofit2.Call
 import retrofit2.Callback
@@ -26,10 +28,10 @@ class MainActivity : AppCompatActivity() {
         val recyclerView: RecyclerView = findViewById(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
+        // Adapter dengan klik item untuk show dialog
         contactAdapter = ContactAdapter(mutableListOf()) { contact ->
             showContactDialog(contact)
         }
-
         recyclerView.adapter = contactAdapter
 
         // Swipe to delete dengan dialog konfirmasi + Snackbar undo
@@ -65,9 +67,34 @@ class MainActivity : AppCompatActivity() {
         })
         itemTouchHelper.attachToRecyclerView(recyclerView)
 
+        // Tombol tambah kontak (FAB)
+        val fabAdd: FloatingActionButton = findViewById(R.id.fab_add)
+        fabAdd.setOnClickListener {
+            val inputLayout = layoutInflater.inflate(R.layout.dialog_add_contact, null)
+            val nameInput = inputLayout.findViewById<EditText>(R.id.et_name)
+            val phoneInput = inputLayout.findViewById<EditText>(R.id.et_phone)
+
+            AlertDialog.Builder(this)
+                .setTitle("Tambah Kontak Baru")
+                .setView(inputLayout)
+                .setPositiveButton("Tambah") { _, _ ->
+                    val name = nameInput.text.toString()
+                    val phone = phoneInput.text.toString()
+
+                    if (name.isNotEmpty() && phone.isNotEmpty()) {
+                        val newContact = ContactModel(fullName = name, phone = phone)
+                        contactAdapter.addItem(newContact)
+                        recyclerView.scrollToPosition(0) // scroll ke atas
+                    }
+                }
+                .setNegativeButton("Batal", null)
+                .show()
+        }
+
         fetchContacts()
     }
 
+    // Ambil data dari API
     private fun fetchContacts() {
         RetrofitClient.instance.getUsers().enqueue(object : Callback<UserResponse> {
             override fun onResponse(call: Call<UserResponse>, response: Response<UserResponse>) {
@@ -91,6 +118,7 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    // Tampilkan detail kontak saat diklik
     private fun showContactDialog(contact: ContactModel) {
         AlertDialog.Builder(this)
             .setTitle("Contact Selected")

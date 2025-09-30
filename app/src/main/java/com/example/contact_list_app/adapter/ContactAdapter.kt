@@ -62,4 +62,9 @@ class ContactAdapter(
     fun getItem(position: Int): ContactModel {
         return contacts[position]
     }
+
+    fun addItem(contact: ContactModel) {
+        contacts.add(0, contact)        // tambahkan di urutan paling atas
+        notifyItemInserted(0)           // beri tahu RecyclerView ada item baru
+    }
 }

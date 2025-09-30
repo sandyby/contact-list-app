@@ -1,5 +1,6 @@
 package com.example.contact_list_app.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,12 +31,15 @@ class ContactAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_contact, parent, false)
+
+        Log.d("RecyclerView", "onCreateViewHolder dipanggil untuk viewType: $viewType")
         return ContactViewHolder(view)
     }
 
     override fun getItemCount() = contacts.size
 
     override fun onBindViewHolder(holder: ContactViewHolder, position: Int) {
+        Log.d("RecyclerView", "onBindViewHolder dipanggil untuk posisi: $position, data: ${contacts[position].fullName}")
         holder.bind(contacts[position])
     }
 

@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.contact_list_app.R
 import com.example.contact_list_app.model.ContactModel
 import com.google.android.material.card.MaterialCardView
@@ -28,7 +29,10 @@ class ContactAdapter(
         public val card: MaterialCardView = itemView.findViewById(R.id.mcvItemContact)
 
         fun bind(contact: ContactModel) {
-            photo.setImageResource(R.drawable.profile_default_foreground)
+            Glide.with(itemView.context)
+                .load(contact.photoUri ?: R.drawable.profile_default_foreground)
+                .placeholder(R.drawable.profile_default_foreground).into(photo)
+//            photo.setImageResource(R.drawable.profile_default_foreground)
             name.text = contact.fullName
             phone.text = contact.phone
             itemView.setOnClickListener { onItemClick(contact) }
@@ -46,10 +50,18 @@ class ContactAdapter(
     override fun getItemCount() = contacts.size
 
     override fun onBindViewHolder(holder: ContactViewHolder, position: Int) {
-        Log.d("RecyclerView", "onBindViewHolder dipanggil untuk posisi: $position, data: ${contacts[position].fullName}")
+        Log.d(
+            "RecyclerView",
+            "onBindViewHolder dipanggil untuk posisi: $position, data: ${contacts[position].fullName}"
+        )
 
         holder.card.setAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_scale_anim))
-        holder.phone.setAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_transition_anim))
+        holder.phone.setAnimation(
+            AnimationUtils.loadAnimation(
+                context,
+                R.anim.fade_transition_anim
+            )
+        )
 
         holder.bind(contacts[position])
     }

@@ -1,5 +1,6 @@
 package com.example.contact_list_app
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -112,5 +113,12 @@ class MainActivity : AppCompatActivity() {
             .setMessage("Name: ${contact.fullName}\nPhone: ${contact.phone}")
             .setPositiveButton("OK", null)
             .show()
+    }
+
+    private fun showContactDetail(contact: ContactModel) {
+        val intent = Intent(this, ContactDetailActivity::class.java).apply {
+            putExtra("contact_id", contact)
+            startActivity(intent)
+        }
     }
 }

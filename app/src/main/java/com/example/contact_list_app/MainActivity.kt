@@ -1,6 +1,7 @@
 package com.example.contact_list_app
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -26,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         val recyclerView: RecyclerView = findViewById(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        contactAdapter = ContactAdapter(mutableListOf()) { contact ->
+        contactAdapter = ContactAdapter(mutableListOf(), this@MainActivity) { contact ->
             showContactDialog(contact)
         }
 
@@ -35,9 +36,14 @@ class MainActivity : AppCompatActivity() {
         // Swipe to delete dengan dialog konfirmasi + Snackbar undo
         val itemTouchHelper = ItemTouchHelper(object :
             ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
+            override fun onMove(
+                rv: RecyclerView,
+                vh: RecyclerView.ViewHolder,
+                t: RecyclerView.ViewHolder
+            ) = false
+
             override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
-                val position = vh.adapterPosition
+                val position = vh.bindingAdapterPosition
                 val contact = contactAdapter.getItem(position)
 
                 AlertDialog.Builder(this@MainActivity)
@@ -48,7 +54,8 @@ class MainActivity : AppCompatActivity() {
                         contactAdapter.removeItem(position)
 
                         // Snackbar Undo
-                        Snackbar.make(findViewById(R.id.recycler_view),
+                        Snackbar.make(
+                            findViewById(R.id.recycler_view),
                             "${contact.fullName} dihapus",
                             Snackbar.LENGTH_LONG
                         ).setAction("Undo") {
@@ -81,12 +88,20 @@ class MainActivity : AppCompatActivity() {
                     }
                     contactAdapter.setData(contacts)
                 } else {
-                    // TODO: handle non-200 response
+                    failToast()
                 }
             }
 
             override fun onFailure(call: Call<UserResponse>, t: Throwable) {
-                // TODO: handle failure: show Toast/log
+                failToast()
+            }
+
+            fun failToast() {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Unable to load contacts! Please try again later",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         })
     }

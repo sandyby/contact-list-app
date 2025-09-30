@@ -10,6 +10,7 @@ import com.example.contact_list_app.adapter.ContactAdapter
 import com.example.contact_list_app.api.RetrofitClient
 import com.example.contact_list_app.model.ContactModel
 import com.example.contact_list_app.model.UserResponse
+import com.google.android.material.snackbar.Snackbar
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -31,12 +32,35 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView.adapter = contactAdapter
 
-        // Swipe to delete
+        // Swipe to delete dengan dialog konfirmasi + Snackbar undo
         val itemTouchHelper = ItemTouchHelper(object :
             ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
             override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
             override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
-                contactAdapter.removeItem(vh.adapterPosition)
+                val position = vh.adapterPosition
+                val contact = contactAdapter.getItem(position)
+
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle("Hapus Kontak?")
+                    .setMessage("Apakah kamu yakin ingin menghapus ${contact.fullName}?")
+                    .setPositiveButton("Ya") { _, _ ->
+                        // Hapus item
+                        contactAdapter.removeItem(position)
+
+                        // Snackbar Undo
+                        Snackbar.make(findViewById(R.id.recycler_view),
+                            "${contact.fullName} dihapus",
+                            Snackbar.LENGTH_LONG
+                        ).setAction("Undo") {
+                            contactAdapter.restoreItem(contact, position)
+                        }.show()
+                    }
+                    .setNegativeButton("Batal") { _, _ ->
+                        // Batalkan swipe → kembalikan item
+                        contactAdapter.notifyItemChanged(position)
+                    }
+                    .setCancelable(false)
+                    .show()
             }
         })
         itemTouchHelper.attachToRecyclerView(recyclerView)
@@ -57,12 +81,12 @@ class MainActivity : AppCompatActivity() {
                     }
                     contactAdapter.setData(contacts)
                 } else {
-                    // handle non-200 response
+                    // TODO: handle non-200 response
                 }
             }
 
             override fun onFailure(call: Call<UserResponse>, t: Throwable) {
-                // handle failure: show Toast or log
+                // TODO: handle failure: show Toast/log
             }
         })
     }

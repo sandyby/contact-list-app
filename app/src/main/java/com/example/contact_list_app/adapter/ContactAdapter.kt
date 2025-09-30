@@ -53,4 +53,13 @@ class ContactAdapter(
         contacts.removeAt(position)
         notifyItemRemoved(position)
     }
+
+    fun restoreItem(contact: ContactModel, position: Int) {
+        contacts.add(position, contact)
+        notifyItemInserted(position)
+    }
+
+    fun getItem(position: Int): ContactModel {
+        return contacts[position]
+    }
 }

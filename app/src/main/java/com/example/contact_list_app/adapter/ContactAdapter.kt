@@ -12,7 +12,7 @@ import com.example.contact_list_app.model.ContactModel
 
 class ContactAdapter(
     private val contacts: MutableList<ContactModel>,
-    private val onItemClick: (ContactModel) -> Unit
+    private val onItemClick: (ContactModel, Int) -> Unit   // now provides current pos
 ) : RecyclerView.Adapter<ContactAdapter.ContactViewHolder>() {
 
     inner class ContactViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -24,7 +24,14 @@ class ContactAdapter(
             photo.setImageResource(R.drawable.profile_default_foreground)
             name.text = contact.fullName
             phone.text = contact.phone
-            itemView.setOnClickListener { onItemClick(contact) }
+
+            // Use adapterPosition at click time to avoid stale positions
+            itemView.setOnClickListener {
+                val pos = adapterPosition
+                if (pos != RecyclerView.NO_POSITION && pos in 0 until contacts.size) {
+                    onItemClick(contacts[pos], pos)
+                }
+            }
         }
     }
 
@@ -49,22 +56,32 @@ class ContactAdapter(
         notifyDataSetChanged()
     }
 
-    fun removeItem(position: Int) {
-        contacts.removeAt(position)
-        notifyItemRemoved(position)
-    }
-
-    fun restoreItem(contact: ContactModel, position: Int) {
-        contacts.add(position, contact)
-        notifyItemInserted(position)
-    }
-
-    fun getItem(position: Int): ContactModel {
-        return contacts[position]
+    fun getItem(position: Int): ContactModel? {
+        return if (position in 0 until contacts.size) contacts[position] else null
     }
 
     fun addItem(contact: ContactModel) {
-        contacts.add(0, contact)        // tambahkan di urutan paling atas
-        notifyItemInserted(0)           // beri tahu RecyclerView ada item baru
+        contacts.add(0, contact)
+        notifyItemInserted(0)
+    }
+
+    fun removeItem(position: Int) {
+        if (position in 0 until contacts.size) {
+            contacts.removeAt(position)
+            notifyItemRemoved(position)
+        }
+    }
+
+    fun restoreItem(contact: ContactModel, position: Int) {
+        val pos = position.coerceIn(0, contacts.size) // safe
+        contacts.add(pos, contact)
+        notifyItemInserted(pos)
+    }
+
+    fun updateItem(position: Int, contact: ContactModel) {
+        if (position in 0 until contacts.size) {
+            contacts[position] = contact
+            notifyItemChanged(position)
+        }
     }
 }

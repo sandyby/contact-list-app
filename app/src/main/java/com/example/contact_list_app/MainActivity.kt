@@ -1,7 +1,10 @@
 package com.example.contact_list_app
 
+import android.content.DialogInterface
 import android.os.Bundle
+import android.text.TextUtils
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -28,28 +31,31 @@ class MainActivity : AppCompatActivity() {
         val recyclerView: RecyclerView = findViewById(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Adapter dengan klik item untuk show dialog
-        contactAdapter = ContactAdapter(mutableListOf()) { contact ->
-            showContactDialog(contact)
+        // Adapter: click => edit dialog (we receive contact + current position)
+        contactAdapter = ContactAdapter(mutableListOf()) { contact, position ->
+            showEditContactDialog(contact, position, recyclerView)
         }
         recyclerView.adapter = contactAdapter
 
-        // Swipe to delete dengan dialog konfirmasi + Snackbar undo
+        // Swipe to delete with confirmation + snackbar undo (safe handling)
         val itemTouchHelper = ItemTouchHelper(object :
             ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
             override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
+
             override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
                 val position = vh.adapterPosition
                 val contact = contactAdapter.getItem(position)
+                if (contact == null) {
+                    // position invalid; restore view
+                    contactAdapter.notifyItemChanged(position)
+                    return
+                }
 
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle("Hapus Kontak?")
                     .setMessage("Apakah kamu yakin ingin menghapus ${contact.fullName}?")
                     .setPositiveButton("Ya") { _, _ ->
-                        // Hapus item
                         contactAdapter.removeItem(position)
-
-                        // Snackbar Undo
                         Snackbar.make(findViewById(R.id.recycler_view),
                             "${contact.fullName} dihapus",
                             Snackbar.LENGTH_LONG
@@ -58,7 +64,6 @@ class MainActivity : AppCompatActivity() {
                         }.show()
                     }
                     .setNegativeButton("Batal") { _, _ ->
-                        // Batalkan swipe → kembalikan item
                         contactAdapter.notifyItemChanged(position)
                     }
                     .setCancelable(false)
@@ -67,34 +72,63 @@ class MainActivity : AppCompatActivity() {
         })
         itemTouchHelper.attachToRecyclerView(recyclerView)
 
-        // Tombol tambah kontak (FAB)
+        // FAB: add new contact (uses same dialog layout as edit)
         val fabAdd: FloatingActionButton = findViewById(R.id.fab_add)
         fabAdd.setOnClickListener {
             val inputLayout = layoutInflater.inflate(R.layout.dialog_add_contact, null)
-            val nameInput = inputLayout.findViewById<EditText>(R.id.et_name)
+            val firstNameInput = inputLayout.findViewById<EditText>(R.id.et_first_name)
+            val lastNameInput = inputLayout.findViewById<EditText>(R.id.et_last_name)
             val phoneInput = inputLayout.findViewById<EditText>(R.id.et_phone)
 
-            AlertDialog.Builder(this)
+            val dialog = AlertDialog.Builder(this)
                 .setTitle("Tambah Kontak Baru")
                 .setView(inputLayout)
-                .setPositiveButton("Tambah") { _, _ ->
-                    val name = nameInput.text.toString()
-                    val phone = phoneInput.text.toString()
+                .setPositiveButton("Tambah", null) // we'll override later to prevent auto-dismiss
+                .setNegativeButton("Batal", null)
+                .create()
 
-                    if (name.isNotEmpty() && phone.isNotEmpty()) {
-                        val newContact = ContactModel(fullName = name, phone = phone)
+            dialog.show()
+
+            // Override positive button to keep dialog open on invalid input
+            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
+                val firstName = firstNameInput.text.toString().trim()
+                val lastName = lastNameInput.text.toString().trim()
+                val phone = phoneInput.text.toString().trim()
+
+                when {
+                    TextUtils.isEmpty(firstName) -> {
+                        firstNameInput.error = "First name tidak boleh kosong"
+                        firstNameInput.requestFocus()
+                    }
+                    TextUtils.isEmpty(lastName) -> {
+                        lastNameInput.error = "Last name tidak boleh kosong"
+                        lastNameInput.requestFocus()
+                    }
+                    TextUtils.isEmpty(phone) -> {
+                        phoneInput.error = "Phone tidak boleh kosong"
+                        phoneInput.requestFocus()
+                    }
+                    !phone.matches(Regex("^[0-9+ ]{6,15}$")) -> {
+                        phoneInput.error = "Nomor telepon tidak valid"
+                        phoneInput.requestFocus()
+                    }
+                    else -> {
+                        val newContact = ContactModel(
+                            fullName = "$firstName $lastName",
+                            phone = phone
+                        )
                         contactAdapter.addItem(newContact)
-                        recyclerView.scrollToPosition(0) // scroll ke atas
+                        recyclerView.scrollToPosition(0)
+                        dialog.dismiss()
                     }
                 }
-                .setNegativeButton("Batal", null)
-                .show()
+            }
         }
 
         fetchContacts()
     }
 
-    // Ambil data dari API
+    // Fetch contacts with basic error handling
     private fun fetchContacts() {
         RetrofitClient.instance.getUsers().enqueue(object : Callback<UserResponse> {
             override fun onResponse(call: Call<UserResponse>, response: Response<UserResponse>) {
@@ -108,22 +142,79 @@ class MainActivity : AppCompatActivity() {
                     }
                     contactAdapter.setData(contacts)
                 } else {
-                    // TODO: handle non-200 response
+                    Toast.makeText(this@MainActivity, "Gagal ambil data: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<UserResponse>, t: Throwable) {
-                // TODO: handle failure: show Toast/log
+                Toast.makeText(this@MainActivity, "Error: ${t.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-    // Tampilkan detail kontak saat diklik
-    private fun showContactDialog(contact: ContactModel) {
-        AlertDialog.Builder(this)
-            .setTitle("Contact Selected")
-            .setMessage("Name: ${contact.fullName}\nPhone: ${contact.phone}")
-            .setPositiveButton("OK", null)
-            .show()
+    // Edit dialog: prefill data, validate, and update adapter safely
+    private fun showEditContactDialog(contact: ContactModel, position: Int, recyclerView: RecyclerView) {
+        val inputLayout = layoutInflater.inflate(R.layout.dialog_add_contact, null)
+        val firstNameInput = inputLayout.findViewById<EditText>(R.id.et_first_name)
+        val lastNameInput = inputLayout.findViewById<EditText>(R.id.et_last_name)
+        val phoneInput = inputLayout.findViewById<EditText>(R.id.et_phone)
+
+        // Prefill existing values (split fullName)
+        val nameParts = contact.fullName.split(" ", limit = 2)
+        firstNameInput.setText(nameParts.getOrNull(0) ?: "")
+        lastNameInput.setText(nameParts.getOrNull(1) ?: "")
+        phoneInput.setText(contact.phone)
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Edit Kontak")
+            .setView(inputLayout)
+            .setPositiveButton("Simpan", null) // override to prevent auto-dismiss
+            .setNegativeButton("Batal", null)
+            .create()
+
+        dialog.show()
+
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
+            val firstName = firstNameInput.text.toString().trim()
+            val lastName = lastNameInput.text.toString().trim()
+            val phone = phoneInput.text.toString().trim()
+
+            when {
+                TextUtils.isEmpty(firstName) -> {
+                    firstNameInput.error = "First name tidak boleh kosong"
+                    firstNameInput.requestFocus()
+                }
+                TextUtils.isEmpty(lastName) -> {
+                    lastNameInput.error = "Last name tidak boleh kosong"
+                    lastNameInput.requestFocus()
+                }
+                TextUtils.isEmpty(phone) -> {
+                    phoneInput.error = "Phone tidak boleh kosong"
+                    phoneInput.requestFocus()
+                }
+                !phone.matches(Regex("^[0-9+\\- ]{6,18}$")) -> {
+                    phoneInput.error = "Nomor telepon tidak valid"
+                    phoneInput.requestFocus()
+                }
+                else -> {
+                    // Double-check position is still valid before updating
+                    val current = contactAdapter.getItem(position)
+                    if (current == null) {
+                        Toast.makeText(this, "Posisi tidak valid (data mungkin berubah).", Toast.LENGTH_SHORT).show()
+                        contactAdapter.notifyDataSetChanged()
+                        dialog.dismiss()
+                        return@setOnClickListener
+                    }
+
+                    val updatedContact = ContactModel(
+                        fullName = "$firstName $lastName",
+                        phone = phone
+                    )
+                    contactAdapter.updateItem(position, updatedContact)
+                    recyclerView.scrollToPosition(position)
+                    dialog.dismiss()
+                }
+            }
+        }
     }
 }

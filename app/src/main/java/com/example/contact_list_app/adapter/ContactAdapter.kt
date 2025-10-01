@@ -3,11 +3,14 @@ package com.example.contact_list_app.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.contact_list_app.R
 import com.example.contact_list_app.model.ContactModel
+import com.google.android.material.card.MaterialCardView
 
 class ContactAdapter(
     private val contacts: MutableList<ContactModel>,
@@ -17,16 +20,18 @@ class ContactAdapter(
     private var filteredContacts: MutableList<ContactModel> = contacts.toMutableList()
 
     inner class ContactViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val photo: ImageView = itemView.findViewById(R.id.contact_photo)
-        private val name: TextView = itemView.findViewById(R.id.contact_name)
-        private val phone: TextView = itemView.findViewById(R.id.contact_phone)
+        public val photo: ImageView = itemView.findViewById(R.id.contact_photo)
+        public val name: TextView = itemView.findViewById(R.id.contact_name)
+        public val phone: TextView = itemView.findViewById(R.id.contact_phone)
+        public val layout: LinearLayout = itemView.findViewById(R.id.llItemContact)
+        public val mcv: MaterialCardView = itemView.findViewById(R.id.mcvItemContact)
 
         fun bind(contact: ContactModel) {
             photo.setImageResource(R.drawable.profile_default_foreground)
             name.text = contact.fullName
             phone.text = contact.phone
             itemView.setOnClickListener {
-                val pos = adapterPosition
+                val pos = bindingAdapterPosition
                 if (pos != RecyclerView.NO_POSITION && pos < filteredContacts.size) {
                     onItemClick(filteredContacts[pos], pos)
                 }
@@ -43,6 +48,13 @@ class ContactAdapter(
 
     override fun onBindViewHolder(holder: ContactViewHolder, position: Int) {
         holder.bind(filteredContacts[position])
+
+        holder.mcv.startAnimation(
+            AnimationUtils.loadAnimation(
+                holder.itemView.context,
+                R.anim.fade_scale_anim
+            )
+        )
     }
 
     fun setData(newContacts: List<ContactModel>) {

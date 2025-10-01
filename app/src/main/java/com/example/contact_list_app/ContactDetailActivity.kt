@@ -1,7 +1,11 @@
 package com.example.contact_list_app
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -20,15 +24,33 @@ class ContactDetailActivity : AppCompatActivity() {
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        val fullName = intent.getStringExtra("name")
+        val phoneNumber = intent.getStringExtra("phoneNumber")
 
+        findViewById<TextView>(R.id.tvFullName).text = fullName
+        findViewById<TextView>(R.id.tvPhoneNumber).text = phoneNumber
+//        findViewById<ImageView>(R.id.ivProfilePhoto).setImageResource()
+
+        val backBtn: ImageButton = findViewById(R.id.ibBackBtn)
+        backBtn.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when(item.itemId) {
+        return when (item.itemId) {
             android.R.id.home -> {
                 onBackPressedDispatcher.onBackPressed()
                 true
-            } else -> super.onOptionsItemSelected(item)
+            }
+
+            R.id.action_add_contact -> {
+                val intent = Intent(this, AddContactActivity::class.java)
+                startActivity(intent)
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
         }
     }
 }

@@ -14,7 +14,8 @@ import com.google.android.material.card.MaterialCardView
 
 class ContactAdapter(
     private val contacts: MutableList<ContactModel>,
-    private val onItemClick: (ContactModel, Int) -> Unit
+//    private val onItemClick: (ContactModel, Int) -> Unit
+    private val onItemClick: (ContactModel) -> Unit
 ) : RecyclerView.Adapter<ContactAdapter.ContactViewHolder>() {
 
     private var filteredContacts: MutableList<ContactModel> = contacts.toMutableList()
@@ -30,11 +31,14 @@ class ContactAdapter(
             photo.setImageResource(R.drawable.profile_default_foreground)
             name.text = contact.fullName
             phone.text = contact.phone
+//            itemView.setOnClickListener {
+//                val pos = bindingAdapterPosition
+//                if (pos != RecyclerView.NO_POSITION && pos < filteredContacts.size) {
+//                    onItemClick(filteredContacts[pos], pos)
+//                }
+//            }
             itemView.setOnClickListener {
-                val pos = bindingAdapterPosition
-                if (pos != RecyclerView.NO_POSITION && pos < filteredContacts.size) {
-                    onItemClick(filteredContacts[pos], pos)
-                }
+                onItemClick(contact)
             }
         }
     }
@@ -82,7 +86,7 @@ class ContactAdapter(
 
     fun addItem(contact: ContactModel) {
         contacts.add(contact)
-        contacts.sortBy { it.fullName }
+        contacts.sortBy { it.fullName.lowercase() }
         filter("") // refresh
     }
 

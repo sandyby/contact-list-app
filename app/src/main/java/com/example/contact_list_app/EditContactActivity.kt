@@ -48,7 +48,7 @@ class EditContactActivity : AppCompatActivity() {
                 TextUtils.isEmpty(updatedPhoneNumber) -> etFullName.error =
                     "Phone number can't be empty!"
 
-                !updatedPhoneNumber.matches(Regex("^[0-9]{6,20}$")) -> etPhoneNumber.error =
+                !updatedPhoneNumber.matches(Regex("^[0-9+\\- ]{6,20}$")) -> etPhoneNumber.error =
                     "Invalid phone number format!"
 
                 else -> {

@@ -10,7 +10,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.contact_list_app.model.ContactModel
 
 class AddContactActivity : AppCompatActivity() {
     private lateinit var etFullName: EditText
@@ -40,7 +39,7 @@ class AddContactActivity : AppCompatActivity() {
             when {
                 TextUtils.isEmpty(fullName) -> etFullName.error = "Fill in your full name!"
                 TextUtils.isEmpty(phoneNumber) -> etPhoneNumber.error = "Fill in your phone number!"
-                !phoneNumber.matches(Regex("^[0-9]{6,20}$")) -> etPhoneNumber.error =
+                !phoneNumber.matches(Regex("^[0-9+\\- ]{6,20}$")) -> etPhoneNumber.error =
                     "Invalid phone number format!"
 
                 else -> {

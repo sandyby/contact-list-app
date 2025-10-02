@@ -1,6 +1,7 @@
 package com.example.contact_list_app
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
 import android.widget.Button
@@ -44,10 +45,14 @@ class EditContactActivity : AppCompatActivity() {
 
             when {
                 TextUtils.isEmpty(updatedFullName) -> etFullName.error = "Full name can't be empty!"
-                TextUtils.isEmpty(updatedPhoneNumber) -> etFullName.error = "Phone number can't be empty!"
-                !updatedPhoneNumber.matches(Regex("^[0-9]{6,20}$")) -> etPhoneNumber.error = "Invalid phone number format!"
+                TextUtils.isEmpty(updatedPhoneNumber) -> etFullName.error =
+                    "Phone number can't be empty!"
+
+                !updatedPhoneNumber.matches(Regex("^[0-9]{6,20}$")) -> etPhoneNumber.error =
+                    "Invalid phone number format!"
+
                 else -> {
-                    val result = intent.apply {
+                    val result = Intent().apply {
                         putExtra("fullName", updatedFullName)
                         putExtra("phoneNumber", updatedPhoneNumber)
                         putExtra("position", position)
@@ -55,7 +60,7 @@ class EditContactActivity : AppCompatActivity() {
                     setResult(Activity.RESULT_OK, result)
                     finish()
                 }
-             }
+            }
         }
 
         btnCancel.setOnClickListener {

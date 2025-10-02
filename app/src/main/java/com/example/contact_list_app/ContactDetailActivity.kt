@@ -46,8 +46,6 @@ class ContactDetailActivity : AppCompatActivity() {
 
         val backBtn: ImageButton = findViewById(R.id.ibBackBtn)
         backBtn.setOnClickListener {
-
-
             val result = Intent().apply {
                 putExtra("fullName", tvFullName.text.toString())
                 putExtra("phoneNumber", tvPhoneNumber.text.toString())
@@ -67,6 +65,16 @@ class ContactDetailActivity : AppCompatActivity() {
             }
             editContactLauncher.launch(result)
 //            startActivityForResult(result, MainActivity.EDIT_DETAIL_CONTACT)
+        }
+
+        onBackPressedDispatcher.addCallback(this) {
+            val result = Intent().apply {
+                putExtra("fullName", tvFullName.text.toString())
+                putExtra("phoneNumber", tvPhoneNumber.text.toString())
+                putExtra("position", intent.getIntExtra("position", -1))
+            }
+            setResult(Activity.RESULT_OK, result)
+            finish()
         }
     }
 

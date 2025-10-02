@@ -16,7 +16,7 @@ import com.google.android.material.card.MaterialCardView
 class ContactAdapter(
     private val contacts: MutableList<ContactModel>,
 //    private val onItemClick: (ContactModel, Int) -> Unit
-    private val onItemClick: (ContactModel) -> Unit
+    private val onItemClick: (ContactModel, Int) -> Unit
 ) : RecyclerView.Adapter<ContactAdapter.ContactViewHolder>() {
 
     private var filteredContacts: MutableList<ContactModel> = contacts.toMutableList()
@@ -38,7 +38,9 @@ class ContactAdapter(
 //                }
 //            }
             itemView.setOnClickListener {
-                onItemClick(contact)
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION && position < filteredContacts.size)
+                    onItemClick(filteredContacts[position], position)
             }
         }
     }

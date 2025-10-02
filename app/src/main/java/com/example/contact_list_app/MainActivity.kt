@@ -61,10 +61,11 @@ class MainActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        contactAdapter = ContactAdapter(mutableListOf()) { contact ->
+        contactAdapter = ContactAdapter(mutableListOf()) { contact, position ->
             val intent = Intent(this, ContactDetailActivity::class.java).apply {
                 putExtra("fullName", contact.fullName)
                 putExtra("phoneNumber", contact.phone)
+                putExtra("position", position)
             }
 //            startActivity(intent)
             viewContactLauncher.launch(intent)

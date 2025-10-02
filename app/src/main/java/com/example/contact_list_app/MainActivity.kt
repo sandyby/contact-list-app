@@ -14,6 +14,7 @@ import android.view.animation.AnimationUtils
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
@@ -40,8 +41,9 @@ import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        private const val ADD_CONTACT = 1
-        private const val VIEW_DETAIL_CONTACT = 2
+        const val ADD_CONTACT = 1
+        const val VIEW_DETAIL_CONTACT = 2
+        const val EDIT_DETAIL_CONTACT = 3
     }
 
     private lateinit var contactAdapter: ContactAdapter
@@ -64,7 +66,8 @@ class MainActivity : AppCompatActivity() {
                 putExtra("fullName", contact.fullName)
                 putExtra("phoneNumber", contact.phone)
             }
-            startActivity(intent)
+//            startActivity(intent)
+            viewContactLauncher.launch(intent)
         }
         recyclerView.adapter = contactAdapter
 
@@ -104,14 +107,60 @@ class MainActivity : AppCompatActivity() {
         fabAdd.setOnClickListener()
         {
             val intent = Intent(this, AddContactActivity::class.java)
-            startActivityForResult(intent, ADD_CONTACT)
+//            startActivityForResult(intent, ADD_CONTACT)
 //            startActivity(intent)
+            addContactLauncher.launch(intent)
 //            showAddContactDialog(recyclerView)
         }
 
         // Fetch data dari API
         fetchContacts()
     }
+
+    private val addContactLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data ?: return@registerForActivityResult
+            val fullName = data.getStringExtra("fullName") ?: return@registerForActivityResult
+            val phoneNumber = data.getStringExtra("phoneNumber") ?: return@registerForActivityResult
+
+            val newContact = ContactModel(fullName, phoneNumber)
+            val position = contactAdapter.addItem(newContact)
+
+            // Navigate to detail view
+            val detailIntent = Intent(this, ContactDetailActivity::class.java).apply {
+                putExtra("fullName", fullName)
+                putExtra("phoneNumber", phoneNumber)
+                putExtra("position", position)
+            }
+            viewContactLauncher.launch(detailIntent)
+        }
+    }
+
+    private val viewContactLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+//        if (result.resultCode == Activity.RESULT_OK) {
+//            var position = result.data?.getIntExtra("position", -1) ?: -1
+//            if (position != -1) {
+//                if (position + 4 <= contactAdapter.itemCount) position += 4
+//                recyclerView.scrollToPosition(position)
+//            }
+//        }
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data ?: return@registerForActivityResult
+            val fullName = data.getStringExtra("fullName") ?: return@registerForActivityResult
+            val phoneNumber = data.getStringExtra("phoneNumber") ?: return@registerForActivityResult
+            val position = data.getIntExtra("position", -1)
+
+            if (position != -1) {
+                contactAdapter.updateItem(position, ContactModel(fullName, phoneNumber))
+                recyclerView.scrollToPosition(position)
+            }
+        }
+    }
+
 
     // 🔹 Toolbar menu (Search)
     override fun onCreateOptionsMenu(menuObj: Menu?): Boolean {
@@ -176,36 +225,45 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
-
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?,
-    ) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == ADD_CONTACT && resultCode == Activity.RESULT_OK) {
-            val fullName = data?.getStringExtra("fullName") ?: return
-            val phoneNumber = data.getStringExtra("phoneNumber") ?: return
-
-            val newContact = ContactModel(fullName, phoneNumber)
-            val position = contactAdapter.addItem(newContact)
-
-            val newContactDetailIntent = Intent(this, ContactDetailActivity::class.java).apply {
-                putExtra("fullName", fullName)
-                putExtra("phoneNumber", phoneNumber)
-                putExtra("position", position)
-            }
-            startActivityForResult(newContactDetailIntent, VIEW_DETAIL_CONTACT)
-        }
-        if (requestCode == VIEW_DETAIL_CONTACT && resultCode == Activity.RESULT_OK) {
-            var position = data?.getIntExtra("position", -1) ?: -1
-            if (position != -1) {
-                if (position + 4 <= contactAdapter.itemCount) position += 4
-                recyclerView.scrollToPosition(position)
-            }
-        }
-    }
+//
+//    override fun onActivityResult(
+//        requestCode: Int,
+//        resultCode: Int,
+//        data: Intent?,
+//    ) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//
+//        if (requestCode == ADD_CONTACT && resultCode == Activity.RESULT_OK) {
+//            val fullName = data?.getStringExtra("fullName") ?: return
+//            val phoneNumber = data.getStringExtra("phoneNumber") ?: return
+//
+//            val newContact = ContactModel(fullName, phoneNumber)
+//            val position = contactAdapter.addItem(newContact)
+//
+//            val newContactDetailIntent = Intent(this, ContactDetailActivity::class.java).apply {
+//                putExtra("fullName", fullName)
+//                putExtra("phoneNumber", phoneNumber)
+//                putExtra("position", position)
+//            }
+//            startActivityForResult(newContactDetailIntent, VIEW_DETAIL_CONTACT)
+//        }
+//        if (requestCode == VIEW_DETAIL_CONTACT && resultCode == Activity.RESULT_OK) {
+//            var position = data?.getIntExtra("position", -1) ?: -1
+//            if (position != -1) {
+//                if (position + 4 <= contactAdapter.itemCount) position += 4
+//                recyclerView.scrollToPosition(position)
+//            }
+//        }
+//        if (requestCode == EDIT_DETAIL_CONTACT && resultCode == Activity.RESULT_OK) {
+//            val fullName = data?.getStringExtra("fullName") ?: return
+//            val phoneNumber = data.getStringExtra("phoneNumber") ?: return
+//            val position = data.getIntExtra("position", -1)
+//
+//            if (position != -1) {
+//                contactAdapter.updateItem(position, ContactModel(fullName, phoneNumber))
+//            }
+//        }
+//    }
 
     // 🔹 Dialog Tambah Kontak
     private fun showAddContactDialog(recyclerView: RecyclerView) {

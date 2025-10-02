@@ -7,6 +7,7 @@ import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.contact_list_app.R
 import com.example.contact_list_app.model.ContactModel
@@ -99,7 +100,7 @@ class ContactAdapter(
         val index = contacts.indexOf(oldContact)
         if (index != -1) {
             contacts[index] = contact
-            contacts.sortBy { it.fullName }
+            contacts.sortBy { it.fullName.lowercase() }
             filter("")
         }
     }

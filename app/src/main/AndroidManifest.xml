@@ -14,6 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Contactlistapp">
         <activity
+            android:name=".EditContactActivity"
+            android:exported="false" />
+        <activity
             android:name=".AddContactActivity"
             android:exported="false" />
         <activity
@@ -21,8 +24,8 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:windowSoftInputMode="adjustPan"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

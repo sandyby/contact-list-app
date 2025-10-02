@@ -35,6 +35,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
+        android:background="?attr/colorOnPrimary"
+        android:tint="?attr/colorOnBackground"
         android:src="@android:drawable/ic_input_add"
         app:layout_anchor="@id/recycler_view"
         app:layout_anchorGravity="bottom|end" />

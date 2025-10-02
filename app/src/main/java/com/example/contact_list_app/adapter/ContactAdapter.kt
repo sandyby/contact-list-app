@@ -26,7 +26,6 @@ class ContactAdapter(
         public val phone: TextView = itemView.findViewById(R.id.contact_phone)
         public val layout: LinearLayout = itemView.findViewById(R.id.llItemContact)
         public val mcv: MaterialCardView = itemView.findViewById(R.id.mcvItemContact)
-
         fun bind(contact: ContactModel) {
             photo.setImageResource(R.drawable.profile_default_foreground)
             name.text = contact.fullName
@@ -51,14 +50,15 @@ class ContactAdapter(
     override fun getItemCount() = filteredContacts.size
 
     override fun onBindViewHolder(holder: ContactViewHolder, position: Int) {
-        holder.bind(filteredContacts[position])
-
         holder.mcv.startAnimation(
             AnimationUtils.loadAnimation(
                 holder.itemView.context,
                 R.anim.fade_scale_anim
             )
         )
+
+        holder.bind(filteredContacts[position])
+
     }
 
     fun setData(newContacts: List<ContactModel>) {
@@ -84,10 +84,14 @@ class ContactAdapter(
         return if (position in 0 until filteredContacts.size) filteredContacts[position] else null
     }
 
-    fun addItem(contact: ContactModel) {
+    fun addItem(contact: ContactModel): Int {
         contacts.add(contact)
         contacts.sortBy { it.fullName.lowercase() }
+
+        val position = contacts.indexOf(contact)
+        notifyDataSetChanged()
         filter("") // refresh
+        return position
     }
 
     fun updateItem(position: Int, contact: ContactModel) {

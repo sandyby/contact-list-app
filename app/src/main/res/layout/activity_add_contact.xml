@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
+    android:layout_margin="16dp"
     android:fitsSystemWindows="true"
     tools:context=".AddContactActivity">
 
@@ -28,17 +28,19 @@
             android:background="@color/black"
             android:contentDescription="Contact Detail Profile Picture"
             android:scaleType="centerCrop"
-            android:src="@drawable/profile_default_foreground" />
+            android:src="@drawable/profile_default_foreground"
+            app:tint="?attr/colorOnBackground" />
 
     </androidx.cardview.widget.CardView>
 
     <EditText
         android:id="@+id/etFullName"
         android:layout_width="match_parent"
-        android:layout_marginTop="16dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:drawableStart="@drawable/baseline_person_outline_36_black"
         android:drawablePadding="4dp"
+        android:drawableTint="?attr/colorOnBackground"
         android:hint="Full Name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -47,10 +49,11 @@
 
     <EditText
         android:id="@+id/etPhoneNumber"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:drawableStart="@drawable/outline_local_phone_36_black"
         android:drawablePadding="4dp"
+        android:drawableTint="?attr/colorOnBackground"
         android:hint="Phone Number"
         android:inputType="phone"
         app:layout_constraintEnd_toEndOf="parent"
@@ -75,7 +78,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Cancel" />
+            android:backgroundTint="?attr/colorOnBackground"
+            android:text="Cancel"
+            android:textSize="16sp" />
 
         <Button
             android:id="@+id/btnSave"
@@ -83,7 +88,9 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_weight="1"
-            android:text="Save" />
+            android:backgroundTint="?attr/colorOnBackground"
+            android:text="Save"
+            android:textSize="16sp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

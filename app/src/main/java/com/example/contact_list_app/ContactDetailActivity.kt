@@ -1,5 +1,6 @@
 package com.example.contact_list_app
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
@@ -24,7 +25,7 @@ class ContactDetailActivity : AppCompatActivity() {
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        val fullName = intent.getStringExtra("name")
+        val fullName = intent.getStringExtra("fullName")
         val phoneNumber = intent.getStringExtra("phoneNumber")
 
         findViewById<TextView>(R.id.tvFullName).text = fullName
@@ -33,22 +34,32 @@ class ContactDetailActivity : AppCompatActivity() {
 
         val backBtn: ImageButton = findViewById(R.id.ibBackBtn)
         backBtn.setOnClickListener {
+            sendResultAndFinish()
             onBackPressedDispatcher.onBackPressed()
         }
+    }
+
+    private fun sendResultAndFinish() {
+        val result = Intent().apply {
+            putExtra("position", intent.getIntExtra("position", -1))
+        }
+        setResult(Activity.RESULT_OK, result)
+        finish()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
+                sendResultAndFinish()
                 onBackPressedDispatcher.onBackPressed()
                 true
             }
 
-            R.id.action_add_contact -> {
-                val intent = Intent(this, AddContactActivity::class.java)
-                startActivity(intent)
-                true
-            }
+//            R.id.action_add_contact -> {
+//                val intent = Intent(this, AddContactActivity::class.java)
+//                startActivity(intent)
+//                true
+//            }
 
             else -> super.onOptionsItemSelected(item)
         }
